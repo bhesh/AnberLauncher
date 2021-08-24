@@ -46,5 +46,5 @@ int main(int argc, char **argv) {
 
     joypad_destroy(&rg_joypad);
 
-	return 0;
+    return 0;
 }
