@@ -17,9 +17,8 @@ LDFLAGS      := -levdev
 INCLUDES     := -Isrc
 
 SRC_DIR      := src
-SRCS         := main.c rg351.c
+SRCS         := main.c rg351.c vgamepad.c
 
-BINARY       := anberdriver
 BUILD_DIR    := build
 NATIVE_BUILD := $(BUILD_DIR)/native
 RG351P_BUILD := $(BUILD_DIR)/rg351p
@@ -29,6 +28,8 @@ OBJS         := $(SRCS:.c=.o)
 OBJS_NATIVE  := $(addprefix $(BUILD_DIR)/native/,$(OBJS))
 OBJS_RG351P  := $(addprefix $(BUILD_DIR)/rg351p/,$(OBJS))
 OBJS_RG351V  := $(addprefix $(BUILD_DIR)/rg351v/,$(OBJS))
+
+BINARY       := anberdriver
 
 all: native rg351p #rg351v
 

@@ -1,77 +1,72 @@
-/* Copyright (c) 2021
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation; either
-* version 2 of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* General Public License for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the
-* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-* Boston, MA 02110-1301 USA
-*
-* Authored by: Brian Hession <github@bhmail.me>
-*
-* RG351 key/event structures
-*/
+/**
+ * RG351 input devices
+ *
+ * Copyright (C) 2021 Brian Hession
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation, either version 
+ * 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public 
+ * License along with this program. If not, see 
+ * <https://www.gnu.org/licenses/>.
+ */
 
 #ifndef ANBERDRIVER_RG351_H
 #define ANBERDRIVER_RG351_H
 
-#define RG351_JOYPAD_DEV "/dev/input/by-path/platform-ff300000.usb-usb-0:1.2:1.0-event-joystick"
+#define RG351_INPUT_DEV "/dev/input/by-path/platform-ff300000.usb-usb-0:1.2:1.0-event-joystick"
 
-// Key IDs
-#define RG_A      0x01
-#define RG_B      0x02
-#define RG_X      0x03
-#define RG_Y      0x04
-#define RG_L1     0x05
-#define RG_R1     0x06
-#define RG_START  0x07
-#define RG_SELECT 0x08
-#define RG_L3     0x09
-#define RG_R3     0x0a
-#define RG_L2     0x0b
-#define RG_R2     0x0c
+// Button IDs
+#define RG_BTN_A       1
+#define RG_BTN_B       2
+#define RG_BTN_X       3
+#define RG_BTN_Y       4
+#define RG_BTN_L1      5
+#define RG_BTN_R1      6
+#define RG_BTN_START   7
+#define RG_BTN_SELECT  8
+#define RG_BTN_L3      9
+#define RG_BTN_R3     10
+#define RG_BTN_L2     11
+#define RG_BTN_R2     12
 
-// Joystick IDs
-#define RG_LSTICK_HORIZONTAL 0x11
-#define RG_LSTICK_VERTICAL   0x12
-#define RG_RSTICK_HORIZONTAL 0x13
-#define RG_RSTICK_VERTICAL   0x14
-#define RG_DPAD_HORIZONTAL   0x21
-#define RG_DPAD_VERTICAL     0x22
+// D-Pad IDs
+#define RG_DPAD_X     13
+#define RG_DPAD_Y     14
 
-// Button Masks
-#define RG_BUTTON_MASK 0x00
-#define RG_ANALOG_MASK 0x10
-#define RG_DPAD_MASK   0x20
+// Analog IDs
+#define RG_L_ANALOG_X 15
+#define RG_L_ANALOG_Y 16
+#define RG_R_ANALOG_X 17
+#define RG_R_ANALOG_Y 18
 
 // Event Types
 #define RG_RELEASE    0
 #define RG_SHORTPRESS 1
 #define RG_LONGPRESS  2
-#define RG_ANALOG     3
-#define RG_DPAD       4
+#define RG_DPAD       3
+#define RG_ANALOG     4
 
-struct rg351_joypad {
+struct rg_controls {
     int fd;
     struct libevdev *device;
 };
 
-struct joypad_event {
-    char keyid;
-    char type;
+struct rg_input_event {
+    int keyid;
+    int type;
     int value; // Analog-only
 };
 
-int joypad_create(const char *, struct rg351_joypad *);
-void joypad_destroy(struct rg351_joypad *);
-int joypad_get_event(const struct rg351_joypad *, struct joypad_event *);
+int rg_controls_create(const char *, struct rg_controls *);
+void rg_controls_destroy(struct rg_controls *);
+int rg_controls_get_event(const struct rg_controls *, struct rg_input_event *);
 
 #endif // ANBERDRIVER_RG351_H
