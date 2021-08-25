@@ -1,21 +1,37 @@
-CC_NATIVE=gcc
-CC_RG351=/work/351ELEC/build.351ELEC-RG351P.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
+CC_NATIVE   := gcc
+CC_RG351    := /work/351ELEC/build.351ELEC-RG351P.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
 
-CFLAGS=-o2 -W -Wall
-LDFLAGS=-levdev
-INCLUDES=-Isrc
+CFLAGS      := -o2 -W -Wall
+LDFLAGS     := -levdev
+INCLUDES    := -Isrc
 
-SRCS=src/main.c src/rg351.c
+SRC_DIR     := src
+SRCS        := main.c rg351.c
 
-BINARY=anberjoycon
+BUILD_DIR   := build
+BINARY      := anberjoycon
 
-all: native rg351
+OBJS        := $(SRCS:.c=.o)
+OBJS_NATIVE := $(addprefix $(BUILD_DIR)/native/,$(OBJS))
+OBJS_RG351  := $(addprefix $(BUILD_DIR)/rg351/,$(OBJS))
 
-native:
-	$(CC_NATIVE) $(CFLAGS) $(INCLUDES) $(SRCS) -o $(BINARY).x86_64 $(LDFLAGS)
+all: $(BUILD_DIR) native rg351
 
-rg351:
-	$(CC_RG351) $(CFLAGS) $(INCLUDES) $(SRCS) -o $(BINARY).aarch64 $(LDFLAGS)
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)/native
+	mkdir -p $(BUILD_DIR)/rg351
+
+native: $(OBJS_NATIVE) $(BUILD_DIR)
+	$(CC_NATIVE) $(OBJS_NATIVE) -o $(BUILD_DIR)/native/$(BINARY) $(LDFLAGS)
+
+rg351: $(OBJS_RG351) $(BUILD_DIR)
+	$(CC_RG351) $(OBJS_RG351) -o $(BUILD_DIR)/rg351/$(BINARY) $(LDFLAGS)
+
+$(BUILD_DIR)/native/%.o : $(SRC_DIR)/%.c $(BUILD_DIR)
+	$(CC_NATIVE) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILD_DIR)/rg351/%.o : $(SRC_DIR)/%.c $(BUILD_DIR)
+	$(CC_RG351) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm -f $(BINARY).x86_64 $(BINARY).aarch64
+	rm -rf build/
