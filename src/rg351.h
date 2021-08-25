@@ -20,8 +20,8 @@
 * RG351 key/event values
 */
 
-#ifndef ANBERJOYCON_RG351_H
-#define ANBERJOYCON_RG351_H
+#ifndef ANBERDRIVER_RG351_H
+#define ANBERDRIVER_RG351_H
 
 #define RG351_JOYPAD_DEV "/dev/input/by-path/platform-ff300000.usb-usb-0:1.2:1.0-event-joystick"
 
@@ -74,4 +74,4 @@ int joypad_create(const char *, struct rg351_joypad *);
 void joypad_destroy(struct rg351_joypad *);
 int joypad_get_event(const struct rg351_joypad *, struct rg351_event *);
 
-#endif // ANBERJOYCON_RG351_H
+#endif // ANBERDRIVER_RG351_H

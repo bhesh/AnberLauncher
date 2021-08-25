@@ -17,7 +17,7 @@
 #
 * Authored by: Brian Hession <github@bhmail.me>
 #
-* AnberJoyCon
+* AnberDriver
 */
 
 #include <stdio.h>
