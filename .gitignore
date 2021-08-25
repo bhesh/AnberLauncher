@@ -1,4 +1,2 @@
-anberjoycon.x86_64
-anberjoycon.aarch64
 send.sh
-**.o
+build/
