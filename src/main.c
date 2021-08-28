@@ -19,35 +19,74 @@
  */
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
-#include "rg351.h"
+#include "rg351-input.h"
 
-static int select = 0;
-static int start = 0;
+void default_mapping() {
+    rg_register_key(RG_BTN_A, KEY_ENTER);
+    rg_register_key(RG_BTN_B, KEY_ESC);
+    rg_register_key(RG_BTN_X, KEY_C);
+    rg_register_key(RG_BTN_Y, KEY_A);
+    rg_register_key(RG_BTN_L1, KEY_RIGHTSHIFT);
+    rg_register_key(RG_BTN_L2, BTN_LEFT);
+    rg_register_key(RG_BTN_R1, KEY_LEFTSHIFT);
+    rg_register_key(RG_BTN_R2, BTN_RIGHT);
+    rg_register_key(RG_BTN_SELECT, KEY_ESC);
+    rg_register_key(RG_BTN_START, KEY_ENTER);
+    rg_register_key(RG_DPAD_LEFT, KEY_LEFT);
+    rg_register_key(RG_DPAD_RIGHT, KEY_RIGHT);
+    rg_register_key(RG_DPAD_UP, KEY_UP);
+    rg_register_key(RG_DPAD_DOWN, KEY_DOWN);
+    rg_register_analog(RG_L_ANALOG_LEFT, 256, KEY_LEFT);
+    rg_register_analog(RG_L_ANALOG_RIGHT, 256, KEY_RIGHT);
+    rg_register_analog(RG_L_ANALOG_UP, 256, KEY_UP);
+    rg_register_analog(RG_L_ANALOG_DOWN, 256, KEY_DOWN);
+    rg_set_select_start_quit(1);
+}
 
 int main(int argc, char **argv) {
-
-    struct rg_controls rg_dev;
-    struct rg_input_event event;
-
-    if (rg_controls_create(RG351_INPUT_DEV, &rg_dev) != 0) {
-        printf("Error reading input device\n");
-        return -1;
+    if (argc < 2) {
+        printf("Usage: anberdriver <cmd> [args...]\n");
+        return 1;
     }
 
-    while (rg_controls_get_event(&rg_dev, &event) == 0 && \
-            // Press SELECT and START to exit
-            (select != RG_SHORTPRESS || start != RG_SHORTPRESS)) {
-        printf("Key ID: %04x -- Action Type: %d -- Value: %d\n", event.keyid, event.type, event.value);
-        if (event.keyid == RG_BTN_SELECT)
-            select = event.type;
-        else if (event.keyid == RG_BTN_START)
-            start = event.type;
-        usleep(1000); // Don't print too fast
+    // Setup the key mapping
+    if (rg_init() != 0) {
+        printf("Error setting up rg351 input\n");
+        return 1;
+    }
+    default_mapping();
+
+    int pid;
+    int err;
+    int quit_status = 0;
+    int stat;
+
+    pid = fork();
+    if (pid ==  0) {
+        // Start the process
+        err = execv(argv[1], argv + 1);
+        if (err) {
+            printf("Failed to start the child process\n");
+            return err;
+        }
     }
 
-    rg_controls_destroy(&rg_dev);
+    // Map the input until the process exits
+    while (1) {
+        if (waitpid(pid, &stat, WNOHANG) != 0)
+            break;
+        // A quit signal was sent (or the rg_dev died), kill the child proc
+        if (quit_status == 0 && (quit_status = rg_map()) != 0)
+            kill(pid, SIGKILL);
+        usleep(100);
+    }
+    rg_clean();
 
+    // Ensure the uinput stuff is flushed through before exiting
+    sleep(1);
     return 0;
 }

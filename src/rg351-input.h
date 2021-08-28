@@ -21,7 +21,7 @@
 #ifndef ANBERDRIVER_RG351_H
 #define ANBERDRIVER_RG351_H
 
-#define RG351_INPUT_DEV "/dev/input/by-path/platform-ff300000.usb-usb-0:1.2:1.0-event-joystick"
+#include <linux/uinput.h>
 
 // Button IDs
 #define RG_BTN_A       1
@@ -38,35 +38,31 @@
 #define RG_BTN_R2     12
 
 // D-Pad IDs
-#define RG_DPAD_X     13
-#define RG_DPAD_Y     14
+#define RG_DPAD_LEFT  13
+#define RG_DPAD_RIGHT 14
+#define RG_DPAD_UP    15
+#define RG_DPAD_DOWN  16
 
 // Analog IDs
-#define RG_L_ANALOG_X 15
-#define RG_L_ANALOG_Y 16
-#define RG_R_ANALOG_X 17
-#define RG_R_ANALOG_Y 18
+#define RG_L_ANALOG_LEFT  17
+#define RG_L_ANALOG_RIGHT 18
+#define RG_L_ANALOG_UP    19
+#define RG_L_ANALOG_DOWN  20
+#define RG_R_ANALOG_LEFT  21
+#define RG_R_ANALOG_RIGHT 22
+#define RG_R_ANALOG_UP    23
+#define RG_R_ANALOG_DOWN  24
 
-// Event Types
-#define RG_RELEASE    0
-#define RG_SHORTPRESS 1
-#define RG_LONGPRESS  2
-#define RG_DPAD       3
-#define RG_ANALOG     4
+// Quit signal
+#define QUIT_STATUS 2
 
-struct rg_controls {
-    int fd;
-    struct libevdev *device;
-};
-
-struct rg_input_event {
-    int keyid;
-    int type;
-    int value; // Analog-only
-};
-
-int rg_controls_create(const char *, struct rg_controls *);
-void rg_controls_destroy(struct rg_controls *);
-int rg_controls_get_event(const struct rg_controls *, struct rg_input_event *);
+int rg_init();
+int rg_register_key(int key_id, short mapping);
+int rg_register_analog(int analog_id, short threshold, short mapping);
+int rg_unregister(int key_id);
+void rg_set_l3_r3_quit(int val);
+void rg_set_select_start_quit(int val);
+int rg_map();
+void rg_clean();
 
 #endif // ANBERDRIVER_RG351_H

@@ -17,7 +17,7 @@ LDFLAGS      := -levdev
 INCLUDES     := -Isrc
 
 SRC_DIR      := src
-SRCS         := main.c rg351.c vgamepad.c
+SRCS         := main.c rg351-input.c
 
 BUILD_DIR    := build
 NATIVE_BUILD := $(BUILD_DIR)/native
