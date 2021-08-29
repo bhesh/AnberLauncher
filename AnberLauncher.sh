@@ -1,2 +1,2 @@
 #!/bin/bash
-/roms/ports/anberlauncher /usr/bin/bash /storage/roms/ports/MenuTest.sh
+/roms/ports/anberlauncher /usr/bin/bash /roms/ports/MenuTest.sh

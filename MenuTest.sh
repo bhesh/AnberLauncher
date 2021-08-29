@@ -16,7 +16,7 @@ while true; do
         "2)" "Test 2"
         "3)" "Exit"
     )
-    choices=$("${selection[@]}" "${options[@]}" 2>&1 > /dev/tty1)
+    choices=$("${selection[@]}" "${options[@]}" 2>&1 >/dev/tty1)
     for choice in $choices; do
         case $choice in
             "1)") ;;
