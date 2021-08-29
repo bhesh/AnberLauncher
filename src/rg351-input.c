@@ -220,8 +220,7 @@ int rg_map() {
     struct map_item item;
 
     // Read all the events in the queue
-    err = libevdev_next_event(RG_DEV, LIBEVDEV_READ_FLAG_NORMAL, &rg_event);
-    while (err == LIBEVDEV_READ_STATUS_SUCCESS) {
+    while ((err = libevdev_next_event(RG_DEV, LIBEVDEV_READ_FLAG_NORMAL, &rg_event)) == LIBEVDEV_READ_STATUS_SUCCESS) {
         if (rg_event.type == RG_BTN_EVENT) {
 
             // Translate the button code
@@ -334,9 +333,6 @@ int rg_map() {
                     break;
             }
         }
-
-        // Get the next event
-        err = libevdev_next_event(RG_DEV, LIBEVDEV_READ_FLAG_NORMAL, &rg_event);
     }
 
     // Check for quit status
