@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -32,7 +33,22 @@ void print_usage(FILE *ofile) {
                    "  -h          print this message\n"
                    "  -f <config> configuration file\n"
                    "  -t <type>   joypad type\n"
-                   "  -s <signal> exit signal to send to child process\n");
+                   "  -s <signal> exit signal to send to child process\n"
+                   "              accepted: INT, TERM, and KILL (default: TERM)\n");
+}
+
+int signal_from_string(const char *signal, int *sig) {
+    if (strncmp(signal, "INT", 10) == 0) {
+        *sig = SIGINT;
+        return 0;
+    } else if (strncmp(signal, "TERM", 10) == 0) {
+        *sig = SIGTERM;
+        return 0;
+    } else if (strncmp(signal, "KILL", 10) == 0) {
+        *sig = SIGKILL;
+        return 0;
+    }
+    return 1;
 }
 
 void default_mapping() {
@@ -59,9 +75,17 @@ void default_mapping() {
 
 int main(int argc, char **argv) {
 
+    int err;
     int opt;
+    int stop_signal;
+    int pid;
+    int quit_signal;
+    int status;
     char *cmd;
     char **cmd_line;
+
+    // Defaults
+    stop_signal = SIGTERM;
 
     // Enforce POSIXLY_CORRECT so it stops parsing at the first non-option argument
     setenv("POSIXLY_CORRECT", "1", 1);
@@ -77,7 +101,11 @@ int main(int argc, char **argv) {
                 // TODO: joypad type
                 break;
             case 's':
-                // TODO: optional signal
+                if ((err = signal_from_string(optarg, &stop_signal)) != 0) {
+                    fprintf(stderr, "%s: invalid signal\n"
+                                    "error: use `-h` for more information\n", argv[0]);
+                    return -1;
+                }
                 break;
             case ':':
             case '?':
@@ -93,28 +121,24 @@ int main(int argc, char **argv) {
     cmd = argv[optind];
     cmd_line = argv + optind;
     if ((argc - optind) < 1) {
-        fprintf(stderr, "%s: required positional argument\n", argv[0]);
+        fprintf(stderr, "%s: required positional argument\n"
+                        "error: use `-h` for more information\n", argv[0]);
         return -1;
     }
 
     // Setup the key mapping
     if (rg_init() != 0) {
-        printf("Error setting up rg351 input\n");
+        fprintf(stderr, "%s: error setting up rg351 input\n", argv[0]);
         return -1;
     }
     default_mapping(); // TODO: config file
-
-    int pid;
-    int err;
-    int quit_signal;
-    int status;
 
     pid = fork();
     if (pid ==  0) {
         // Start the process
         err = execv(cmd, cmd_line);
         if (err) {
-            printf("Failed to start the child process\n");
+            fprintf(stderr, "%s: failed to start the child process\n", argv[0]);
             return -1;
         }
     }
@@ -127,7 +151,7 @@ int main(int argc, char **argv) {
 
         // A quit signal was sent (or the rg_dev died), kill the child proc
         if (quit_signal == 0 && (quit_signal = rg_map()) != 0)
-            kill(pid, SIGINT); // TODO: allow SIGKILL as well
+            kill(pid, stop_signal);
 
         // Don't lock the CPU
         usleep(100);
