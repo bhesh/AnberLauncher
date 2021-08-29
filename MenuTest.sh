@@ -9,8 +9,7 @@ while true; do
         --title "AnberLauncher Test" \
         --no-collapse \
         --clear \
-        --cancel-label "Select + Start to Exit" \
-        --menu "$pair" 9 55 9
+        --cancel-label "Select + Start to Exit"
     )
     options=(
         "1)" "Test 1"
