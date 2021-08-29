@@ -24,6 +24,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "rg351-input.h"
 
 void print_usage(FILE *ofile) {
@@ -37,55 +38,23 @@ void print_usage(FILE *ofile) {
                    "              accepted: INT, TERM, and KILL (default: TERM)\n");
 }
 
-int signal_from_string(const char *signal, int *sig) {
-    if (strncmp(signal, "INT", 10) == 0) {
-        *sig = SIGINT;
-        return 0;
-    } else if (strncmp(signal, "TERM", 10) == 0) {
-        *sig = SIGTERM;
-        return 0;
-    } else if (strncmp(signal, "KILL", 10) == 0) {
-        *sig = SIGKILL;
-        return 0;
-    }
-    return 1;
-}
-
-void default_mapping() {
-    rg_register_key(RG_BTN_A, KEY_ENTER);
-    rg_register_key(RG_BTN_B, KEY_ESC);
-    rg_register_key(RG_BTN_X, KEY_C);
-    rg_register_key(RG_BTN_Y, KEY_A);
-    rg_register_key(RG_BTN_L1, KEY_RIGHTSHIFT);
-    rg_register_key(RG_BTN_L2, BTN_LEFT);
-    rg_register_key(RG_BTN_R1, KEY_LEFTSHIFT);
-    rg_register_key(RG_BTN_R2, BTN_RIGHT);
-    rg_register_key(RG_BTN_SELECT, KEY_ESC);
-    rg_register_key(RG_BTN_START, KEY_ENTER);
-    rg_register_key(RG_DPAD_LEFT, KEY_LEFT);
-    rg_register_key(RG_DPAD_RIGHT, KEY_RIGHT);
-    rg_register_key(RG_DPAD_UP, KEY_UP);
-    rg_register_key(RG_DPAD_DOWN, KEY_DOWN);
-    rg_register_analog(RG_L_ANALOG_LEFT, 256, KEY_LEFT);
-    rg_register_analog(RG_L_ANALOG_RIGHT, 256, KEY_RIGHT);
-    rg_register_analog(RG_L_ANALOG_UP, 256, KEY_UP);
-    rg_register_analog(RG_L_ANALOG_DOWN, 256, KEY_DOWN);
-    rg_set_select_start_quit(1);
-}
-
 int main(int argc, char **argv) {
 
-    int err;
+    // Argument parsing
     int opt;
-    int stop_signal;
-    int pid;
-    int quit_signal;
-    int status;
+    char *configfile;
+    char *signal_str;
     char *cmd;
     char **cmd_line;
 
-    // Defaults
-    stop_signal = SIGTERM;
+    // Process handling
+    int err;
+    int pid;
+    int status;
+    int stop_process;
+
+    // Allow for overrides
+    signal_str = 0;
 
     // Enforce POSIXLY_CORRECT so it stops parsing at the first non-option argument
     setenv("POSIXLY_CORRECT", "1", 1);
@@ -95,17 +64,13 @@ int main(int argc, char **argv) {
                 print_usage(stdout);
                 return 0;
             case 'f':
-                // TODO: config file
+                configfile = optarg;
                 break;
             case 't':
                 // TODO: joypad type
                 break;
             case 's':
-                if ((err = signal_from_string(optarg, &stop_signal)) != 0) {
-                    fprintf(stderr, "%s: invalid signal\n"
-                                    "error: use `-h` for more information\n", argv[0]);
-                    return -1;
-                }
+                signal_str = optarg;
                 break;
             case ':':
             case '?':
@@ -131,11 +96,23 @@ int main(int argc, char **argv) {
         fprintf(stderr, "%s: error setting up rg351 input\n", argv[0]);
         return -1;
     }
-    default_mapping(); // TODO: config file
 
+    // Load the configuration
+    if (load_config(configfile) != 0) {
+        fprintf(stderr, "%s: error reading config file. Loading default", argv[0]);
+        default_config();
+    }
+
+    // Override signal if the option was presented
+    if (signal_str && (err = signal_from_string(signal_str, &STOP_SIGNAL)) != 0) {
+        fprintf(stderr, "%s: invalid signal\n"
+                        "error: use `-h` for more information\n", argv[0]);
+        return -1;
+    }
+
+    // Fork and execute the child process
     pid = fork();
     if (pid ==  0) {
-        // Start the process
         err = execv(cmd, cmd_line);
         if (err) {
             fprintf(stderr, "%s: failed to start the child process\n", argv[0]);
@@ -144,14 +121,14 @@ int main(int argc, char **argv) {
     }
 
     // Keep mapping input until the child proc ends (or is killed).
-    quit_signal = 0;
+    stop_process = 0;
     while (1) {
         if (waitpid(pid, &status, WNOHANG) != 0)
             break;
 
         // A quit signal was sent (or the rg_dev died), kill the child proc
-        if (quit_signal == 0 && (quit_signal = rg_map()) != 0)
-            kill(pid, stop_signal);
+        if (stop_process == 0 && (stop_process = rg_map()) != 0)
+            kill(pid, STOP_SIGNAL);
 
         // Don't lock the CPU
         usleep(100);

@@ -17,12 +17,13 @@ CC_NATIVE    := gcc
 CC_RG351P    := /work/351ELEC/build.351ELEC-RG351P.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
 CC_RG351V    := /work/351ELEC/build.351ELEC-RG351V.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
 
-CFLAGS       := -o2 -W -Wall
+#CFLAGS       := -o2 -W -Wall
+CFLAGS       := -o2 -W -Wall -DDEBUG
 LDFLAGS      := -levdev
 INCLUDES     := -Isrc
 
 SRC_DIR      := src
-SRCS         := main.c rg351-input.c
+SRCS         := main.c rg351-input.c config.c ezini.c
 
 BUILD_DIR    := build
 NATIVE_BUILD := $(BUILD_DIR)/native

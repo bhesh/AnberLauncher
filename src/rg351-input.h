@@ -18,8 +18,8 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ANBERDRIVER_RG351_H
-#define ANBERDRIVER_RG351_H
+#ifndef ANBERLAUNCHER_RG351_H
+#define ANBERLAUNCHER_RG351_H
 
 #include <linux/uinput.h>
 
@@ -65,4 +65,4 @@ void rg_set_select_start_quit(int val);
 int rg_map();
 void rg_clean();
 
-#endif // ANBERDRIVER_RG351_H
+#endif // ANBERLAUNCHER_RG351_H
