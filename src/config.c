@@ -30,12 +30,6 @@ int JOYPAD_TYPE = RG_KEYBOARD;
 int STOP_SIGNAL = SIGTERM;
 
 ini_entry_t INI_ENTRY;
-ini_entry_list_t INI_LIST;
-
-const char *INI_FIELDS[] = {
-    "AnberLauncher",
-    "KeyBindings"
-};
 
 #define MAX_SECTION_LENGTH 255
 #define MAX_KEY_LENGTH      64
