@@ -5,8 +5,8 @@ export XDG_RUNTIME_DIR=/run/user/$UID/
 
 while true; do
     selection=(dialog \
-        --backtitle "AnberDriver Test" \
-        --title "AnberDriver Test" \
+        --backtitle "AnberLauncher Test" \
+        --title "AnberLauncher Test" \
         --no-collapse \
         --clear \
         --cancel-label "Select + Start to Exit" \

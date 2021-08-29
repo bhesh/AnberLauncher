@@ -1,5 +1,5 @@
 /**
- * AnberDriver
+ * AnberLauncher
  *
  * Copyright (C) 2021 Brian Hession
  *
@@ -48,21 +48,22 @@ void default_mapping() {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("Usage: anberdriver <cmd> [args...]\n");
-        return 1;
+        printf("Usage: anberlauncher <cmd> [args...]\n");
+        return -1;
     }
 
     // Setup the key mapping
     if (rg_init() != 0) {
         printf("Error setting up rg351 input\n");
-        return 1;
+        return -1;
     }
+    // TODO: Allow custom configuration
     default_mapping();
 
     int pid;
     int err;
-    int quit_status = 0;
-    int stat;
+    int quit_signal;
+    int status;
 
     pid = fork();
     if (pid ==  0) {
@@ -70,22 +71,32 @@ int main(int argc, char **argv) {
         err = execv(argv[1], argv + 1);
         if (err) {
             printf("Failed to start the child process\n");
-            return err;
+            return -1;
         }
     }
 
-    // Map the input until the process exits
+    // Keep mapping input until the child proc ends (or is killed).
+    quit_signal = 0;
     while (1) {
-        if (waitpid(pid, &stat, WNOHANG) != 0)
+        if (waitpid(pid, &status, WNOHANG) != 0)
             break;
+
         // A quit signal was sent (or the rg_dev died), kill the child proc
-        if (quit_status == 0 && (quit_status = rg_map()) != 0)
-            kill(pid, SIGKILL);
+        if (quit_signal == 0 && (quit_signal = rg_map()) != 0)
+            kill(pid, SIGINT); // TODO: allow SIGKILL as well
+
+        // Don't lock the CPU
         usleep(100);
     }
     rg_clean();
 
     // Ensure the uinput stuff is flushed through before exiting
     sleep(1);
+
+    // Raise the child proc's exit status
+    if (WIFEXITED(status)) {
+        err = WEXITSTATUS(status);
+        return err;
+    }
     return 0;
 }

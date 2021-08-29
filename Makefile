@@ -1,16 +1,21 @@
-# AnberDriver Makefile
+# AnberLauncher Makefile
 #
 # The aarch64 toolchain used is from 351ELEC (https://github.com/351ELEC/351ELEC).
 #
-# To build it:
+# To build the 351ELEC toolchain:
 # > DEVICE=RG351P ARCH=aarch64 ./script/build toolchain
+# > DEVICE=RG351P ARCH=aarch64 ./script/build libevdev
 #
 # Alternatively:
 # > DEVICE=RG351V ARCH=aarch64 ./script/build toolchain
+# > DEVICE=RG351V ARCH=aarch64 ./script/build libevdev
+#
+# I'm not sure if there's a difference between the RG351P/V
+# toolchains but I have both to be safe.
 #
 CC_NATIVE    := gcc
-CC_RG351P     := /work/351ELEC/build.351ELEC-RG351P.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
-CC_RG351V     := /work/351ELEC/build.351ELEC-RG351V.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
+CC_RG351P    := /work/351ELEC/build.351ELEC-RG351P.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
+CC_RG351V    := /work/351ELEC/build.351ELEC-RG351V.aarch64/toolchain/bin/aarch64-libreelec-linux-gnueabi-gcc
 
 CFLAGS       := -o2 -W -Wall
 LDFLAGS      := -levdev
@@ -29,9 +34,9 @@ OBJS_NATIVE  := $(addprefix $(BUILD_DIR)/native/,$(OBJS))
 OBJS_RG351P  := $(addprefix $(BUILD_DIR)/rg351p/,$(OBJS))
 OBJS_RG351V  := $(addprefix $(BUILD_DIR)/rg351v/,$(OBJS))
 
-BINARY       := anberdriver
+BINARY       := anberlauncher
 
-all: native rg351p #rg351v
+all: native rg351p rg351v
 
 # Native build
 $(NATIVE_BUILD):
