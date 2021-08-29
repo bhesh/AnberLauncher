@@ -37,9 +37,9 @@ const char *INI_FIELDS[] = {
     "KeyBindings"
 };
 
-#define MAX_SECTION_SIZE 255
-#define MAX_KEY_SIZE      64
-#define MAX_VALUE_SIZE   255
+#define MAX_SECTION_LENGTH 255
+#define MAX_KEY_LENGTH      64
+#define MAX_VALUE_LENGTH   255
 
 const char *RGNAMES[] = {
     0, "RG_BTN_A", "RG_BTN_B", "RG_BTN_X", "RG_BTN_Y", "RG_BTN_L1", "RG_BTN_R1", "RG_BTN_START",
@@ -47,6 +47,7 @@ const char *RGNAMES[] = {
     "RG_DPAD_UP", "RG_DPAD_DOWN", "RG_L_ANALOG_LEFT", "RG_L_ANALOG_RIGHT", "RG_L_ANALOG_UP", "RG_L_ANALOG_DOWN",
     "RG_R_ANALOG_LEFT", "RG_R_ANALOG_RIGHT", "RG_R_ANALOG_UP", "RG_R_ANALOG_DOWN"
 };
+#define RGNAMES_LENGTH sizeof(RGNAMES) / sizeof(char *)
 
 #define KEY_OFFSET 0
 const char *KEYNAMES[] = {
@@ -81,6 +82,7 @@ const char *KEYNAMES[] = {
     "KEY_BATTERY", "KEY_BLUETOOTH", "KEY_WLAN", "KEY_UWB", "KEY_UNKNOWN", "KEY_VIDEO_NEXT", "KEY_VIDEO_PREV",
     "KEY_BRIGHTNESS_CYCLE", "KEY_BRIGHTNESS_AUTO", "KEY_DISPLAY_OFF", "KEY_WWAN", "KEY_RFKILL", "KEY_MICMUTE"
 };
+#define KEYNAMES_LENGTH sizeof(KEYNAMES) / sizeof(char *)
 
 #define BTN_OFFSET 0x100
 const char *BTNNAMES[] = {
@@ -94,6 +96,7 @@ const char *BTNNAMES[] = {
     "BTN_STYLUS3", "BTN_TOUCH", "BTN_STYLUS", "BTN_STYLUS2", "BTN_TOOL_DOUBLETAP", "BTN_TOOL_TRIPLETAP",
     "BTN_TOOL_QUADTAP", "BTN_GEAR_DOWN", "BTN_GEAR_UP"
 };
+#define BTNNAMES_LENGTH sizeof(BTNNAMES) / sizeof(char *)
 
 int signal_from_string(const char *signal, int *sig) {
     if (strncmp("INT", signal, 10) == 0) {
@@ -111,8 +114,8 @@ int signal_from_string(const char *signal, int *sig) {
 
 int __get_rg_key(const char *name, int *value) {
     long unsigned int i;
-    for (i = 0; i < sizeof(RGNAMES); ++i) {
-        if (RGNAMES[i] && strncmp(RGNAMES[i], name, MAX_KEY_SIZE) == 0) {
+    for (i = 0; i < RGNAMES_LENGTH; ++i) {
+        if (RGNAMES[i] && strncmp(RGNAMES[i], name, MAX_KEY_LENGTH) == 0) {
             *value = i;
             return 1;
         }
@@ -122,14 +125,14 @@ int __get_rg_key(const char *name, int *value) {
 
 int __get_map_key(const char *name, int *value) {
     long unsigned int i;
-    for (i = 0; i < sizeof(KEYNAMES); ++i) {
-        if (KEYNAMES[i] && strncmp(KEYNAMES[i], name, MAX_VALUE_SIZE) == 0) {
+    for (i = 0; i < KEYNAMES_LENGTH; ++i) {
+        if (KEYNAMES[i] && strncmp(KEYNAMES[i], name, MAX_VALUE_LENGTH) == 0) {
             *value = i;
             return 1;
         }
     }
-    for (i = 0; i < sizeof(BTNNAMES); ++i) {
-        if (BTNNAMES[i] && strncmp(BTNNAMES[i], name, MAX_VALUE_SIZE) == 0) {
+    for (i = 0; i < BTNNAMES_LENGTH; ++i) {
+        if (BTNNAMES[i] && strncmp(BTNNAMES[i], name, MAX_VALUE_LENGTH) == 0) {
             *value = i;
             return 1;
         }
@@ -150,24 +153,24 @@ int load_config(const char *filename) {
     }
 
     while ((res = GetEntryFromFile(fp, &INI_ENTRY)) > 0) {
-        if (strncmp("AnberLauncher", INI_ENTRY.section, MAX_SECTION_SIZE) == 0) {
-            if (strncmp("L3_R3_QUIT", INI_ENTRY.key, MAX_KEY_SIZE) == 0) {
-                if (strncmp("1", INI_ENTRY.value, MAX_VALUE_SIZE) == 0) {
+        if (strncmp("AnberLauncher", INI_ENTRY.section, MAX_SECTION_LENGTH) == 0) {
+            if (strncmp("L3_R3_QUIT", INI_ENTRY.key, MAX_KEY_LENGTH) == 0) {
+                if (strncmp("1", INI_ENTRY.value, MAX_VALUE_LENGTH) == 0) {
 #ifdef DEBUG
                     printf("Set L3+R3 quit\n");
 #endif
                     rg_set_l3_r3_quit(1);
                 }
             }
-            else if (strncmp("SELECT_START_QUIT", INI_ENTRY.key, MAX_KEY_SIZE) == 0) {
-                if (strncmp("1", INI_ENTRY.value, MAX_VALUE_SIZE) == 0) {
+            else if (strncmp("SELECT_START_QUIT", INI_ENTRY.key, MAX_KEY_LENGTH) == 0) {
+                if (strncmp("1", INI_ENTRY.value, MAX_VALUE_LENGTH) == 0) {
 #ifdef DEBUG
                     printf("Set Select+Start quit\n");
 #endif
                     rg_set_select_start_quit(1);
                 }
             }
-        } else if (strncmp("KeyBindings", INI_ENTRY.section, MAX_SECTION_SIZE) == 0) {
+        } else if (strncmp("KeyBindings", INI_ENTRY.section, MAX_SECTION_LENGTH) == 0) {
             if (__get_rg_key(INI_ENTRY.key, &rg_key) == 0)
                 continue;
             if (__get_map_key(INI_ENTRY.value, &map_key) == 0)
