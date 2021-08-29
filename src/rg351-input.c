@@ -110,7 +110,7 @@ int __ev_dev_init() {
     usetup.id.bustype = BUS_USB;
     usetup.id.vendor = 0x1234;  /* sample vendor */
     usetup.id.product = 0x5678; /* sample product */
-    strncpy(usetup.name, "RG351 Virtual Pad", UINPUT_MAX_NAME_SIZE);
+    strncpy(usetup.name, "RG351 Virtual Keyboard", UINPUT_MAX_NAME_SIZE);
     usetup.id.version = 1;
 
     // Register/create the device

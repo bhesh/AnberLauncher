@@ -19,10 +19,21 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "rg351-input.h"
+
+void print_usage(FILE *ofile) {
+    fprintf(ofile, "Usage anberlauncher [options] <cmd> [arguments ...]\n"
+                   "\n"
+                   "OPTIONS\n"
+                   "  -h          print this message\n"
+                   "  -f <config> configuration file\n"
+                   "  -t <type>   joypad type\n"
+                   "  -s <signal> exit signal to send to child process\n");
+}
 
 void default_mapping() {
     rg_register_key(RG_BTN_A, KEY_ENTER);
@@ -47,8 +58,42 @@ void default_mapping() {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 2) {
-        printf("Usage: anberlauncher <cmd> [args...]\n");
+
+    int opt;
+    char *cmd;
+    char **cmd_line;
+
+    // Enforce POSIXLY_CORRECT so it stops parsing at the first non-option argument
+    setenv("POSIXLY_CORRECT", "1", 1);
+    while ((opt = getopt(argc, argv, "hf:t:s:")) != -1) {
+        switch (opt) {
+            case 'h':
+                print_usage(stdout);
+                return 0;
+            case 'f':
+                // TODO: config file
+                break;
+            case 't':
+                // TODO: joypad type
+                break;
+            case 's':
+                // TODO: optional signal
+                break;
+            case ':':
+            case '?':
+                fprintf(stderr, "error: use `-h` for more information\n");
+                return -1;
+            default:
+                fprintf(stderr, "%s: unknown error\n", argv[0]);
+                return -1;
+        }
+    }
+
+    // Get the cmd and cmd line
+    cmd = argv[optind];
+    cmd_line = argv + optind;
+    if ((argc - optind) < 1) {
+        fprintf(stderr, "%s: required positional argument\n", argv[0]);
         return -1;
     }
 
@@ -57,8 +102,7 @@ int main(int argc, char **argv) {
         printf("Error setting up rg351 input\n");
         return -1;
     }
-    // TODO: Allow custom configuration
-    default_mapping();
+    default_mapping(); // TODO: config file
 
     int pid;
     int err;
@@ -68,7 +112,7 @@ int main(int argc, char **argv) {
     pid = fork();
     if (pid ==  0) {
         // Start the process
-        err = execv(argv[1], argv + 1);
+        err = execv(cmd, cmd_line);
         if (err) {
             printf("Failed to start the child process\n");
             return -1;
